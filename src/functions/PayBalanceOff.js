@@ -11,18 +11,20 @@ app.http('PayBalanceOff', {
         const dayOfWeek = parseInt(request.query.get('day'));
 
         const currentDate = new Date();
-        const futureDate = new Date(deadline);
+        const futureDate = new Date(dueDate);
+        let installment = 0;
 
-        const validFrequency = [ 'D', 'W', 'OW'];
+        const validFrequency = ['D', 'W', 'OW'];
 
         const isValidDate = (dateString) => {
             const date = new Date(dateString);
             return !isNaN(date.getTime());
         }
+        console.log(dayOfWeek);
 
         //check that the values are valid
         if((isNaN(balance) || balance <= 0) ||
-        dayOfWeek >= 0 && dayOfWeek <= 6 ||
+        (isNaN(dayOfWeek) || !(dayOfWeek >= 0 && dayOfWeek <= 6)) ||
         !validFrequency.includes(frequency) ||
         !isValidDate(dueDate)
         ) {
@@ -34,12 +36,12 @@ app.http('PayBalanceOff', {
             switch(frequency){
                 case 'D':
                     const differenceMs = futureDate - currentDate;
-                    const numDays = differenceMs/86400000;
-
+                    const numDays = Math.round(differenceMs/86400000);
+    
                     installment = parseFloat((balance/numDays).toFixed(2)); //12.00
                     break;
                 case 'W':
-                    const occurences_w = 0;
+                    let occurences_w = 0;
 
                     for(let date = currentDate; date <= futureDate; date.setDate(date.getDate() + 1)) {
                         if(date.getDay() === dayOfWeek) {
@@ -50,7 +52,7 @@ app.http('PayBalanceOff', {
                     installment = parseFloat((balance/occurences_w).toFixed(2));
                     break;
                 case 'OW':
-                    const occurences_ow = 0;
+                    let occurences_ow = 0;
 
                     for(let date = currentDate; date <= futureDate; date.setDate(date.getDate() + 1)) {
                         if(date.getDay() === dayOfWeek) {
